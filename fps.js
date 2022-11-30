@@ -10,6 +10,11 @@ import { OctreeHelper } from 'three/addons/helpers/OctreeHelper.js';
 import { Capsule } from 'three/addons/math/Capsule.js';
 
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
+import { checkIntersection, intersection, line, mouseHelper } from './utils/intersection';
+import { shoot, scene } from './utils/controls';
+
+let selectedColor = null;
+let collisionWorld = null;
 
 const socket = new WebSocket('ws://localhost:3000');
 socket.onmessage = (message) => {
@@ -19,11 +24,10 @@ socket.onmessage = (message) => {
 
 const clock = new THREE.Clock();
 
-const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x88ccee);
 scene.fog = new THREE.Fog(0x88ccee, 0, 50);
 
-const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.rotation.order = 'YXZ';
 
 const fillLight1 = new THREE.HemisphereLight(0x4488bb, 0x002244, 0.5);
@@ -118,8 +122,12 @@ container.addEventListener('mousedown', () => {
 	mouseTime = performance.now();
 });
 
-document.addEventListener('mouseup', () => {
-	if (document.pointerLockElement !== null) throwBall();
+document.addEventListener('mouseup', (event) => {
+	if (document.pointerLockElement !== null && collisionWorld) {
+		checkIntersection(0, 0, collisionWorld.children[0], camera);
+		shoot(intersection, mouseHelper, collisionWorld.children[0], selectedColor);
+		// throwBall();
+	}
 });
 
 document.body.addEventListener('mousemove', (event) => {
@@ -178,7 +186,7 @@ function updatePlayer(deltaTime) {
 		playerVelocity.y -= GRAVITY * deltaTime;
 
 		// small air resistance
-		damping *= 0.1;
+		damping *= 0.2;
 	}
 
 	playerVelocity.addScaledVector(playerVelocity, damping);
@@ -319,6 +327,7 @@ function controls(deltaTime) {
 const loader = new GLTFLoader().setPath('./models/gltf/');
 
 loader.load('collision-world.glb', (gltf) => {
+	collisionWorld = gltf.scene;
 	scene.add(gltf.scene);
 
 	worldOctree.fromGraphNode(gltf.scene);
@@ -341,6 +350,15 @@ loader.load('collision-world.glb', (gltf) => {
 	const gui = new GUI({ width: 200 });
 	gui.add({ debug: false }, 'debug').onChange(function (value) {
 		helper.visible = value;
+	});
+	const colorFormats = {
+		string: '#ffffff',
+		int: 0xffffff,
+		object: { r: 1, g: 1, b: 1 },
+		array: [1, 1, 1],
+	};
+	gui.addColor(colorFormats, 'string').onChange((value) => {
+		selectedColor = value;
 	});
 
 	animate();
