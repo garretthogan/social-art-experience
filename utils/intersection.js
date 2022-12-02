@@ -23,9 +23,9 @@ const lineGeometry = new BufferGeometry();
 lineGeometry.setFromPoints([new Vector3(), new Vector3()]);
 export const line = new Line(lineGeometry, new LineBasicMaterial());
 
-const mouse = new Vector2();
-const intersects = [];
 export function checkIntersection(x, y, mesh, camera) {
+	const mouse = new Vector2();
+	const intersects = [];
 	if (mesh === undefined) return;
 
 	mouse.x = x; // mouse to sceen space: (x / window.innerWidth) * 2 - 1;
@@ -58,4 +58,9 @@ export function checkIntersection(x, y, mesh, camera) {
 	} else {
 		intersection.intersects = false;
 	}
+}
+
+// eventually we will have complex worlds with many meshes to check
+export function checkIntersectionsForAllMeshes(x, y, meshes, camera) {
+	return meshes.map((m) => checkIntersection(x, y, m, camera));
 }

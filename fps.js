@@ -12,6 +12,8 @@ import { Capsule } from 'three/addons/math/Capsule.js';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { checkIntersection, intersection, line, mouseHelper } from './utils/intersection';
 import { shoot, scene } from './utils/controls';
+import { loadGLTF, loadSVG } from './utils/loaders';
+import { Group } from 'three';
 
 let selectedColor = null;
 let collisionWorld = null;
@@ -122,10 +124,38 @@ container.addEventListener('mousedown', () => {
 	mouseTime = performance.now();
 });
 
+const urlToLoad = 'models/svg/tiger.svg';
+const { fillStrokes, lineStrokes } = await loadSVG(urlToLoad);
+
 document.addEventListener('mouseup', (event) => {
 	if (document.pointerLockElement !== null && collisionWorld) {
+		// need to make sure the third param is always the mesh we wanna check
+		// might need to make this support multiple meshes
+		// it loops through mesh array to check for intersection
 		checkIntersection(0, 0, collisionWorld.children[0], camera);
-		shoot(intersection, mouseHelper, collisionWorld.children[0], selectedColor);
+		console.log('collision', collisionWorld);
+		// hit data
+		const { position, orientation, splatterGroup } = shoot(
+			intersection,
+			mouseHelper,
+			collisionWorld.children[0],
+			selectedColor
+		);
+		const group = new Group();
+		group.scale.multiplyScalar(0.0025);
+		group.scale.y *= -1;
+
+		// group.rotateX(orientation.x);
+		group.rotateY(orientation.y);
+		group.position.x = position.x - 1;
+		group.position.z = position.z;
+		group.position.y = position.y + 1;
+
+		lineStrokes.map((l) => group.add(l.clone()));
+		fillStrokes.map((f) => group.add(f.clone()));
+
+		//scene.add(group);
+		scene.add(splatterGroup);
 		// throwBall();
 	}
 });
@@ -324,45 +354,46 @@ function controls(deltaTime) {
 	}
 }
 
-const loader = new GLTFLoader().setPath('./models/gltf/');
+// const gltf = await loadGLTF('shotengai-maple-room.glb');
+// gltf.scene.scale.set(100, 100, 100);
+// gltf.scene.position.set(10, -3, -6);
 
-loader.load('collision-world.glb', (gltf) => {
-	collisionWorld = gltf.scene;
-	scene.add(gltf.scene);
+const gltf = await loadGLTF('collision-world.glb');
+scene.add(gltf.scene);
+collisionWorld = gltf.scene;
 
-	worldOctree.fromGraphNode(gltf.scene);
+worldOctree.fromGraphNode(gltf.scene);
 
-	gltf.scene.traverse((child) => {
-		if (child.isMesh) {
-			child.castShadow = true;
-			child.receiveShadow = true;
+gltf.scene.traverse((child) => {
+	if (child.isMesh) {
+		child.castShadow = true;
+		child.receiveShadow = true;
 
-			if (child.material.map) {
-				child.material.map.anisotropy = 4;
-			}
+		if (child.material.map) {
+			child.material.map.anisotropy = 4;
 		}
-	});
-
-	const helper = new OctreeHelper(worldOctree);
-	helper.visible = false;
-	scene.add(helper);
-
-	const gui = new GUI({ width: 200 });
-	gui.add({ debug: false }, 'debug').onChange(function (value) {
-		helper.visible = value;
-	});
-	const colorFormats = {
-		string: '#ffffff',
-		int: 0xffffff,
-		object: { r: 1, g: 1, b: 1 },
-		array: [1, 1, 1],
-	};
-	gui.addColor(colorFormats, 'string').onChange((value) => {
-		selectedColor = value;
-	});
-
-	animate();
+	}
 });
+
+const helper = new OctreeHelper(worldOctree);
+helper.visible = false;
+scene.add(helper);
+
+const gui = new GUI({ width: 200 });
+gui.add({ debug: false }, 'debug').onChange(function (value) {
+	helper.visible = value;
+});
+const colorFormats = {
+	string: '#ffffff',
+	int: 0xffffff,
+	object: { r: 1, g: 1, b: 1 },
+	array: [1, 1, 1],
+};
+gui.addColor(colorFormats, 'string').onChange((value) => {
+	selectedColor = value;
+});
+
+animate();
 
 function teleportPlayerIfOob() {
 	if (camera.position.y <= -25) {

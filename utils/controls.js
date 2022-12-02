@@ -1,4 +1,4 @@
-import { Euler, Mesh, MeshPhongMaterial, Scene, TextureLoader, Vector2, Vector3 } from 'three';
+import { Euler, Group, Mesh, MeshPhongMaterial, Scene, TextureLoader, Vector2, Vector3 } from 'three';
 import { DecalGeometry } from 'three/addons/geometries/DecalGeometry.js';
 
 export const scene = new Scene();
@@ -19,6 +19,7 @@ const decalMaterial = new MeshPhongMaterial({
 	polygonOffset: true,
 	polygonOffsetFactor: -4,
 	wireframe: false,
+	opacity: 1,
 });
 
 const position = new Vector3();
@@ -49,9 +50,11 @@ export function shoot(intersection, mouseHelper, mesh, color) {
 	material.color.setHex(color ? `0x${color.split('#')[1]}` : Math.random() * 0xffffff);
 
 	const m = new Mesh(new DecalGeometry(mesh, position, orientation, size), material);
-
+	const group = new Group();
+	group.add(m);
 	decals.push(m);
-	scene.add(m);
+
+	return { splatterGroup: group, position, orientation };
 }
 
 function removeDecals() {
