@@ -133,7 +133,6 @@ document.addEventListener('mouseup', (event) => {
 		// might need to make this support multiple meshes
 		// it loops through mesh array to check for intersection
 		checkIntersection(0, 0, collisionWorld.children[0], camera);
-		console.log('collision', collisionWorld);
 		// hit data
 		const { position, orientation, splatterGroup } = shoot(
 			intersection,
