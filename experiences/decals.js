@@ -1,46 +1,41 @@
 import * as THREE from 'three';
 
-import Stats from 'three/addons/libs/stats.module.js';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { checkIntersection, intersection, mouseHelper, line } from './utils/intersection';
-import { scene, shoot } from './utils/controls';
-scene.add(line);
-scene.add(mouseHelper);
+import { checkIntersection, intersection, mouseHelper, line } from '../utils/intersection';
+import { shoot } from '../utils/controls';
+import scene from '../utils/scene';
+import renderer from '../utils/renderer';
+import camera from '../utils/camera';
+import stats from '../utils/stats';
 
-const container = document.getElementById('container');
-
-let renderer, camera, stats;
 let mesh;
 
 const textureLoader = new THREE.TextureLoader();
 
 const decals = [];
 
-const params = {
+const splatterParams = {
 	minScale: 10,
 	maxScale: 20,
-	rotate: true,
-	clear: function () {
-		removeDecals();
-	},
+	color: null,
 };
 
-init();
-animate();
+export default class DecalsExperience {
+	start() {
+		scene.add(line);
+		scene.add(mouseHelper);
+		init();
+	}
+	update() {
+		animate();
+	}
+}
 
 function init() {
-	renderer = new THREE.WebGLRenderer({ antialias: true });
-	renderer.setPixelRatio(window.devicePixelRatio);
-	renderer.setSize(window.innerWidth, window.innerHeight);
-	container.appendChild(renderer.domElement);
-
-	stats = new Stats();
-	container.appendChild(stats.dom);
-
-	camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
+	// camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
 	camera.position.z = 120;
 
 	const controls = new OrbitControls(camera, renderer.domElement);
@@ -59,8 +54,6 @@ function init() {
 
 	loadLeePerrySmith();
 
-	window.addEventListener('resize', onWindowResize);
-
 	let moved = false;
 
 	controls.addEventListener('change', function () {
@@ -73,26 +66,21 @@ function init() {
 
 	window.addEventListener('pointerup', function (event) {
 		if (moved === false) {
-			checkIntersection(event.clientX, event.clientY, mesh, camera);
+			const x = (event.clientX / window.innerWidth) * 2 - 1;
+			const y = -(event.clientY / window.innerHeight) * 2 + 1;
+			checkIntersection(x, y, mesh, camera);
 
-			if (intersection.intersects) shoot(intersection, mouseHelper, mesh);
+			if (intersection.intersects) {
+				const { splatterGroup } = shoot(intersection, mouseHelper, mesh, splatterParams);
+				scene.add(splatterGroup);
+			}
 		}
 	});
 
-	window.addEventListener('pointermove', onPointerMove);
-
-	function onPointerMove(event) {
-		if (event.isPrimary) {
-			checkIntersection(event.clientX, event.clientY, mesh, camera);
-		}
-	}
-
 	const gui = new GUI();
 
-	gui.add(params, 'minScale', 1, 30);
-	gui.add(params, 'maxScale', 1, 30);
-	gui.add(params, 'rotate');
-	gui.add(params, 'clear');
+	gui.add(splatterParams, 'minScale', 1, 30);
+	gui.add(splatterParams, 'maxScale', 1, 30);
 	gui.open();
 }
 
@@ -100,6 +88,7 @@ function loadLeePerrySmith() {
 	const loader = new GLTFLoader();
 
 	loader.load('models/gltf/LeePerrySmith/LeePerrySmith.glb', function (gltf) {
+		console.log('gltf', gltf.scene);
 		mesh = gltf.scene.children[0];
 		mesh.material = new THREE.MeshPhongMaterial({
 			specular: 0x111111,
@@ -120,13 +109,6 @@ function removeDecals() {
 	});
 
 	decals.length = 0;
-}
-
-function onWindowResize() {
-	camera.aspect = window.innerWidth / window.innerHeight;
-	camera.updateProjectionMatrix();
-
-	renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
 function animate() {

@@ -1,7 +1,7 @@
-import { Euler, Group, Mesh, MeshPhongMaterial, Scene, TextureLoader, Vector2, Vector3 } from 'three';
+import { Euler, Group, Mesh, MeshPhongMaterial, TextureLoader, Vector2, Vector3 } from 'three';
 import { DecalGeometry } from 'three/addons/geometries/DecalGeometry.js';
 
-export const scene = new Scene();
+export const keyStates = {};
 
 const textureLoader = new TextureLoader();
 const decalDiffuse = textureLoader.load('textures/decal/decal-diffuse.png');
@@ -29,25 +29,25 @@ const size = new Vector3(10, 10, 10);
 const decals = [];
 
 const params = {
-	minScale: 0.5,
-	maxScale: 2.5,
+	minScale: 10,
+	maxScale: 20,
 	rotate: true,
-	clear: function () {
-		removeDecals();
-	},
 };
 
-export function shoot(intersection, mouseHelper, mesh, color) {
+export function shoot(intersection, mouseHelper, mesh, splatterParams) {
 	position.copy(intersection.point);
 	orientation.copy(mouseHelper.rotation);
 
+	const minScale = splatterParams.minScale;
+	const maxScale = splatterParams.maxScale;
+
 	if (params.rotate) orientation.z = Math.random() * 2 * Math.PI;
 
-	const scale = params.minScale + Math.random() * (params.maxScale - params.minScale);
+	const scale = minScale + Math.random() * (maxScale - minScale);
 	size.set(scale, scale, scale);
 
 	const material = decalMaterial.clone();
-	material.color.setHex(color ? `0x${color.split('#')[1]}` : Math.random() * 0xffffff);
+	material.color.setHex(splatterParams.color ? `0x${splatterParams.color.split('#')[1]}` : Math.random() * 0xffffff);
 
 	const m = new Mesh(new DecalGeometry(mesh, position, orientation, size), material);
 	const group = new Group();
@@ -55,12 +55,4 @@ export function shoot(intersection, mouseHelper, mesh, color) {
 	decals.push(m);
 
 	return { splatterGroup: group, position, orientation };
-}
-
-function removeDecals() {
-	decals.forEach(function (d) {
-		scene.remove(d);
-	});
-
-	decals.length = 0;
 }

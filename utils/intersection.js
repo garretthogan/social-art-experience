@@ -28,8 +28,8 @@ export function checkIntersection(x, y, mesh, camera) {
 	const intersects = [];
 	if (mesh === undefined) return;
 
-	mouse.x = x; // mouse to sceen space: (x / window.innerWidth) * 2 - 1;
-	mouse.y = y; // mouse to screen space: -(y / window.innerHeight) * 2 + 1;
+	mouse.x = x;
+	mouse.y = y;
 
 	raycaster.setFromCamera(mouse, camera);
 	raycaster.intersectObject(mesh, false, intersects);
