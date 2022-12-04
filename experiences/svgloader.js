@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
-import { loadGLTF, loadSVG } from './utils/loaders';
+import { loadGLTF, loadSVG } from '../utils/loaders';
 import { Group } from 'three';
 
 let renderer, scene, camera, gui, guiData;

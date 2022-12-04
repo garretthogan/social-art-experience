@@ -1,7 +1,7 @@
-import { Vector3 } from 'three';
+import { Vector2, Vector3 } from 'three';
 import DecalsExperience from './experiences/decals';
 import FPSExperience from './experiences/fps';
-import Player from './Player';
+import Player from './objects/Player';
 
 import camera from './utils/camera';
 import { getDeltaTime } from './utils/clock';
@@ -59,6 +59,19 @@ export function startExperience(experience) {
 			const velocity = new Vector3(diffX, 0, diffY);
 			const dt = getDeltaTime();
 			user.applyForce(velocity, dt);
+		}
+
+		if (touches.length > 1) {
+			const extraTouch = touches[1];
+			const currentX = extraTouch.clientX;
+			const currentY = extraTouch.clientY;
+
+			const diffX = currentX - x;
+			const diffY = currentY - y;
+			const velocity = new Vector2(diffX, diffY);
+
+			camera.rotation.y -= velocity.x / 500;
+			camera.rotation.x -= velocity.y / 500;
 		}
 	});
 

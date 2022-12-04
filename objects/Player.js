@@ -1,11 +1,11 @@
 import { Group, Vector3 } from 'three';
 import { Capsule } from 'three/addons/math/Capsule.js';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
-import { keyStates, shoot } from './utils/controls';
-import camera from './utils/camera';
-import { checkIntersection, intersection, mouseHelper } from './utils/intersection';
-import scene from './utils/scene';
-import { loadSVG } from './utils/loaders';
+import { keyStates, shoot } from '../utils/controls';
+import camera from '../utils/camera';
+import { checkIntersection, intersection, mouseHelper } from '../utils/intersection';
+import scene from '../utils/scene';
+import { loadSVG } from '../utils/loaders';
 
 const GRAVITY = 30;
 

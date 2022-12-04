@@ -5,8 +5,7 @@ import { hemisphere, sunlight } from '../utils/sunlight';
 import camera from '../utils/camera';
 import scene from '../utils/scene';
 
-import World from '../World';
-import Player from '../Player';
+import World from '../objects/World';
 import stats from '../utils/stats';
 import { STEPS_PER_FRAME } from '../utils/clock';
 

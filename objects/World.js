@@ -2,7 +2,7 @@ import { Object3D } from 'three';
 import { Octree } from 'three/addons/math/Octree.js';
 import { OctreeHelper } from 'three/addons/helpers/OctreeHelper.js';
 
-import { loadGLTF } from './utils/loaders';
+import { loadGLTF } from '../utils/loaders';
 
 export default class World extends Object3D {
 	constructor() {
