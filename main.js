@@ -69,9 +69,10 @@ export function startExperience(experience) {
 			const diffX = currentX - x;
 			const diffY = currentY - y;
 			const velocity = new Vector2(diffX, diffY);
+			velocity.normalize();
 
-			camera.rotation.y -= velocity.x / 500;
-			camera.rotation.x -= velocity.y / 500;
+			camera.rotation.y -= velocity.x / 30;
+			camera.rotation.x -= velocity.y / 30;
 		}
 	});
 
